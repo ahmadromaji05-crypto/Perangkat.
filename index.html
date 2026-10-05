@@ -184,8 +184,10 @@
             <div>
               <label class="block text-[11px] font-semibold text-indigo-900 mb-1">Model Gemini</label>
               <select id="geminiModel" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-indigo-200 bg-white focus:outline-none">
-                <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Cepat & Cerdas)</option>
-                <option value="gemini-2.5-pro">gemini-2.5-pro (Analisis Mendalam)</option>
+                <option value="gemini-3.8-flash" selected>gemini-3.8-flash (Rekomendasi Cepat)</option>
+                <option value="gemini-3.8-pro">gemini-3.8-pro (Analisis Mendalam)</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash (Versi Standar)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
               </select>
             </div>
             <div>
@@ -543,16 +545,17 @@
     async function testApiKeyConnection() {
       const apiKey = document.getElementById('geminiApiKey').value.trim();
       const statusEl = document.getElementById('apiStatusMessage');
+      const selectedModel = document.getElementById('geminiModel')?.value || 'gemini-3.8-flash';
 
       if (!apiKey) {
         showToast('Silakan tempelkan Gemini API Key terlebih dahulu!', 'error');
         return;
       }
 
-      statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Menghubungkan ke Google Gemini API...';
+      statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Menguji model <b>${selectedModel}</b>...`;
 
       try {
-        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
         const res = await fetch(testUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -563,13 +566,13 @@
 
         if (res.ok) {
           localStorage.setItem('gemini_api_key_perangkat', apiKey);
-          statusEl.innerHTML = '<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Kunci API valid & siap digunakan!</span>';
+          statusEl.innerHTML = `<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Model <b>${selectedModel}</b> aktif & siap digunakan!</span>`;
           showToast('Koneksi API Gemini Berhasil!', 'success');
         } else {
           const errData = await res.json().catch(() => ({}));
-          const errMsg = errData.error?.message || 'Kunci API tidak valid atau kuota terbatas.';
+          const errMsg = errData.error?.message || 'Kunci API tidak valid atau model tidak didukung.';
           statusEl.innerHTML = `<span class="text-rose-600 font-medium"><i class="fa-solid fa-circle-xmark"></i> ${errMsg}</span>`;
-          showToast('Koneksi API Gagal. Periksa kembali kunci Anda.', 'error');
+          showToast('Koneksi API Gagal. Periksa pesan di bawah kolom kunci.', 'error');
         }
       } catch (err) {
         statusEl.innerHTML = '<span class="text-rose-600 font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Gagal terhubung ke jaringan internet.</span>';
@@ -1326,7 +1329,7 @@
 
     async function generateAllWithGemini(apiKey, d) {
       const selectedNames = d.selectedDocs.join(", ");
-      const model = document.getElementById('geminiModel').value || 'gemini-2.5-flash';
+      const model = document.getElementById('geminiModel').value || 'gemini-3.8-flash';
       const temperature = parseFloat(document.getElementById('geminiTemp').value || '0.3');
 
       const prompt = `Anda adalah konsultan ahli kurikulum dan perancang administrasi guru resmi di Indonesia (Kurikulum Merdeka).
